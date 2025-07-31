@@ -9,7 +9,7 @@ function getAuth(req: Request, res: Response): [string, string] | null{
 
   if (!provider || !userId || typeof provider != 'string' || typeof userId != 'string') {
     res.status(400).json({ 
-        message: 'provider, userId are wrong',
+        message: 'provider, id are wrong',
         received: req.body
     });
     return null;
@@ -58,20 +58,6 @@ export const postGate = async (req: Request, res: Response) => {
     const canAdd = await userServer.canAddCustomGatesBulk(provider, userId, gates.length)
 
     if (canAdd){
-      var isGate = true;
-      for (let i=0; i<gates.length; i++){
-        if (!gatesServer.isGateInput(gates[i], true)){
-          isGate = false;
-          break;
-        }
-      }
-      if (!isGate) {
-        res.status(400).json({ 
-          message: 'some gate data is invalid',
-          received: req.body
-        });
-        return;
-      }
       const status = await gatesServer.upsertUserWithMultipleGates(provider, userId, gates);
       res.json(status);
     }
@@ -88,15 +74,7 @@ export const patchGate = async (req: Request, res: Response) => {
       return;
 
     const [provider, userId] = authResult;
-    const gate: gatesServer.GateUpdateInput = req.body;
-
-    if (!gatesServer.isGateInput(gate, false)) {
-      res.status(400).json({ 
-        message: 'some gate data is invalid',
-        received: req.body
-      });
-      return;
-    }
+    const gate = req.body;
 
     await userServer.getUser(provider, userId);
 
@@ -153,13 +131,6 @@ export const postAlgorithm = async (req: Request, res: Response) => {
     const canAdd = await userServer.canAddCustomAlgorithm(provider, userId)
 
     if (canAdd){
-      if (!algorithmsServer.isAlgorithmInput(algorithm, true)) {
-        res.status(400).json({ 
-          message: 'some algorithm data is invalid',
-          received: req.body
-        });
-        return;
-      }
       const status = await algorithmsServer.upsertUserWithAlgorithm(provider, userId, algorithm);
       res.json(status);
     }
@@ -176,15 +147,7 @@ export const patchAlgorithm = async (req: Request, res: Response) => {
       return;
 
     const [provider, userId] = authResult;
-    const algorithm: algorithmsServer.AlgorithmUpdateInput = req.body;
-
-    if (!algorithmsServer.isAlgorithmInput(algorithm, false)) {
-      res.status(400).json({ 
-        message: 'some algorithm data is invalid',
-        received: req.body
-      });
-      return;
-    }
+    const algorithm = req.body;
 
     await userServer.getUser(provider, userId);
 

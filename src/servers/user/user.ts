@@ -1,54 +1,51 @@
-import prisma from '../../prisma.js';
+import prisma from '../../lib/prisma.js';
+import { encrypt, decrypt } from '../../lib/cryptoUtils';
+
 
 export async function createUser(systemAuth: string, idAuth: string) {
+  const encryptedIdAuth = encrypt(idAuth);
+
   const newUser = await prisma.user.create({
       data: {
         systemAuth,
-        idAuth
+        idAuth: encryptedIdAuth
       },
       include: {  
-      customGates: {  
-        select: {  
-          id: true,  
-        }, 
+      customGates: {
         orderBy: {  
           createdAt: 'desc',  
         },  
       }, 
-      customAlgorithms: {  
-        select: {  
-          id: true,  
-        },
+      customAlgorithms: {
         orderBy: {  
           createdAt: 'desc',  
         },
       },  
     },  
     });
-  return newUser;
+  return {
+    ...newUser,
+    idAuth: decrypt(newUser.idAuth),
+  };
 }
 
 export async function getUser(systemAuth: string, idAuth: string) {
+  const encryptedIdAuth = encrypt(idAuth);
+
   const user = await prisma.user.findUnique({
     where: {
       systemAuth_idAuth: {  
         systemAuth,  
-        idAuth,  
+        idAuth: encryptedIdAuth,  
       }, 
     },
     include: {  
-      customGates: {  
-        select: {  
-          id: true,  
-        },
+      customGates: { 
         orderBy: {  
           createdAt: 'desc',  
         },  
       }, 
-      customAlgorithms: {  
-        select: {  
-          id: true,  
-        },
+      customAlgorithms: {
         orderBy: {  
           createdAt: 'desc',  
         },  
@@ -60,7 +57,10 @@ export async function getUser(systemAuth: string, idAuth: string) {
     return createUser(systemAuth, idAuth);
   }
 
-  return user;
+  return {
+    ...user,
+    idAuth: decrypt(user.idAuth),
+  };
 }
   
 export async function canAddCustomGatesBulk(systemAuth: string, idAuth: string, newGatesCount: number): Promise<boolean> {  

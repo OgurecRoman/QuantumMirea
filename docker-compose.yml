@@ -22,6 +22,8 @@ services:
   db:
     image: postgres:17.2-bookworm
     restart: unless-stopped
+    ports:
+      - "${DB_EXTERNAL_PORT}:${DB_PORT}"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}

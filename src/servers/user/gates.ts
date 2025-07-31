@@ -1,5 +1,6 @@
-import prisma from '../../prisma';
+import prisma from '../../lib/prisma';
 import { getUser } from '../user/user.js'
+import { encrypt, decrypt } from '../../lib/cryptoUtils';
   
 export async function getUserGates(systemAuth: string, idAuth: string) {  
   const user = await getUser(systemAuth, idAuth);
@@ -20,17 +21,19 @@ type GateCreateInput = {
 };  
   
 export async function upsertUserWithMultipleGates(systemAuth: string, idAuth: string, gatesData: GateCreateInput[]) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
   try {  
-    return await prisma.user.upsert({  
+    const user = await prisma.user.upsert({  
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       create: {  
         systemAuth,  
-        idAuth,  
+        idAuth: encryptedIdAuth,  
         customGates: {  
           create: gatesData,  
         },  
@@ -44,13 +47,18 @@ export async function upsertUserWithMultipleGates(systemAuth: string, idAuth: st
         customGates: true,  
       },  
     });  
+
+    return {
+        ...user,
+        idAuth: decrypt(user.idAuth),
+      };
   } catch (e) {  
     console.error(e);  
     return { status: false };  
   }  
 }
 
-export type GateUpdateInput = {  
+type GateUpdateInput = {  
   id: number;  
   title: string;  
   description: string;  
@@ -62,34 +70,17 @@ export type GateUpdateInput = {
   complexThreeTwo: number;  
   complexFourOne: number;  
   complexFourTwo: number;  
-};  
-
-export function isGateInput(gate: any, post: boolean): gate is GateCreateInput | GateUpdateInput {
-  if (!post){
-    if (typeof gate?.id !== 'number') return false;
-  }
-  return (
-      typeof gate?.title === 'string' &&
-      typeof gate?.description === 'string' &&
-      typeof gate?.complexOneOne === 'number' &&
-      typeof gate?.complexOneTwo === 'number' &&
-      typeof gate?.complexTwoOne === 'number' &&
-      typeof gate?.complexTwoTwo === 'number' &&
-      typeof gate?.complexThreeOne === 'number' &&
-      typeof gate?.complexThreeTwo === 'number' &&
-      typeof gate?.complexFourOne === 'number' &&
-      typeof gate?.complexFourTwo === 'number'
-    );
-  
-}
+}; 
   
 export async function updateUserGate(systemAuth: string, idAuth: string, updateData: GateUpdateInput) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
   try {  
     const userWithGate = await prisma.user.findUnique({  
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -125,7 +116,7 @@ export async function updateUserGate(systemAuth: string, idAuth: string, updateD
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -133,7 +124,10 @@ export async function updateUserGate(systemAuth: string, idAuth: string, updateD
       },  
     });  
   
-    return updatedUser;  
+    return {
+    ...updatedUser,
+    idAuth: decrypt(updatedUser!.idAuth),
+  };
   } catch (e) {  
     console.error(e);  
     return { status: false };  
@@ -141,12 +135,14 @@ export async function updateUserGate(systemAuth: string, idAuth: string, updateD
 }
   
 export async function deleteUserGate(systemAuth: string, idAuth: string, gateId: number) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
   try {  
     const user = await prisma.user.findUnique({  
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -168,7 +164,7 @@ export async function deleteUserGate(systemAuth: string, idAuth: string, gateId:
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -176,7 +172,10 @@ export async function deleteUserGate(systemAuth: string, idAuth: string, gateId:
       },  
     });  
   
-    return updatedUser;  
+    return {
+    ...updatedUser,
+    idAuth: decrypt(updatedUser!.idAuth),
+  };  
   } catch (e) {  
     console.error(e);  
     return { status: false };  

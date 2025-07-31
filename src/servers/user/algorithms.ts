@@ -1,5 +1,6 @@
-import prisma from '../../prisma.js';
-import { getUser } from '../user/user.js'
+import prisma from '../../lib/prisma.js';
+import { getUser } from '../user/user.js';
+import { encrypt, decrypt } from '../../lib/cryptoUtils';
   
 export async function getUserAlgorithms(systemAuth: string, idAuth: string) {  
   const user = await getUser(systemAuth, idAuth);
@@ -15,17 +16,19 @@ type AlgorithmCreateInput = {
 };  
   
 export async function upsertUserWithAlgorithm(systemAuth: string, idAuth: string, algorithmData: AlgorithmCreateInput) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
   try {  
-    return await prisma.user.upsert({  
+    const user = await prisma.user.upsert({  
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       create: {  
         systemAuth,  
-        idAuth,  
+        idAuth: encryptedIdAuth,  
         customAlgorithms: {  
           create: [algorithmData],  
         },  
@@ -39,46 +42,34 @@ export async function upsertUserWithAlgorithm(systemAuth: string, idAuth: string
         customAlgorithms: true,  
       },  
     });  
+    return {
+        ...user,
+        idAuth: decrypt(user.idAuth),
+      };
   } catch (e) {  
     console.error(e);  
     return { status: false };  
   }  
 }
   
-export type AlgorithmUpdateInput = {  
+type AlgorithmUpdateInput = {  
   id: number;  
   title: string;  
   description: string;  
   qubit: number;  
   column: number;  
   data: object[];  
-};  
-
-export function isAlgorithmInput(algorithm: any, post: boolean): algorithm is AlgorithmCreateInput | AlgorithmUpdateInput {
-  if (!post){
-    if (typeof algorithm?.id !== 'number') return false;
-  }
-  if (
-    !Array.isArray(algorithm?.data) ||
-    !algorithm.data.every((item: Object) => typeof item === 'object' && item !== null)
-  ) return false;
-  
-  return (
-      typeof algorithm?.title === 'string' &&
-      typeof algorithm?.description === 'string' &&
-      typeof algorithm?.qubit === 'number' &&
-      typeof algorithm?.column === 'number'
-    );
-  
-}
+};
   
 export async function updateUserAlgorithm(systemAuth: string, idAuth: string, updateData: AlgorithmUpdateInput) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
   try {  
     const userWithGate = await prisma.user.findUnique({  
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -109,7 +100,7 @@ export async function updateUserAlgorithm(systemAuth: string, idAuth: string, up
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -117,7 +108,10 @@ export async function updateUserAlgorithm(systemAuth: string, idAuth: string, up
       },  
     });  
   
-    return updatedUser;  
+    return {
+        ...updatedUser,
+        idAuth: decrypt(updatedUser!.idAuth),
+      }; 
   } catch (e) {  
     console.error(e);  
     return { status: false };  
@@ -125,12 +119,14 @@ export async function updateUserAlgorithm(systemAuth: string, idAuth: string, up
 }
   
 export async function deleteUserAlgorithm(systemAuth: string, idAuth: string, algorithmId: number) {  
+  const encryptedIdAuth = encrypt(idAuth);
+  
   try {  
     const user = await prisma.user.findUnique({  
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -153,7 +149,7 @@ export async function deleteUserAlgorithm(systemAuth: string, idAuth: string, al
       where: {  
         systemAuth_idAuth: {  
           systemAuth,  
-          idAuth,  
+          idAuth: encryptedIdAuth,  
         },  
       },  
       include: {  
@@ -161,7 +157,10 @@ export async function deleteUserAlgorithm(systemAuth: string, idAuth: string, al
       },  
     });  
   
-    return updatedUser;  
+    return {
+        ...updatedUser,
+        idAuth: decrypt(updatedUser!.idAuth),
+      }; 
   } catch (e) {  
     console.error(e);  
     return { status: false };  
