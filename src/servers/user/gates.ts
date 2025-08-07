@@ -1,4 +1,5 @@
 import prisma from '../../lib/prisma';
+import { Prisma } from '@prisma/client';
 import { getUser } from '../user/user.js'
 import { encrypt, decrypt } from '../../lib/cryptoUtils';
   
@@ -169,6 +170,171 @@ export async function deleteUserGate(systemAuth: string, idAuth: string, gateId:
       },  
       include: {  
         customGates: true,  
+      },  
+    });  
+  
+    return {
+    ...updatedUser,
+    idAuth: decrypt(updatedUser!.idAuth),
+  };  
+  } catch (e) {  
+    console.error(e);  
+    return { status: false };  
+  }  
+}
+
+// Composite gates
+
+export async function getCompositeGates(systemAuth: string, idAuth: string) {  
+  const user = await getUser(systemAuth, idAuth);
+  return user.customCompositeGates;  
+}  
+
+type CompositeGateCreateInput = {
+  title: string;
+  description: string;
+  gates: Prisma.InputJsonValue;
+};
+  
+export async function upsertUserWithMultipleCompositeGates(systemAuth: string, idAuth: string, 
+  gatesData: CompositeGateCreateInput[]) {  
+
+  const encryptedIdAuth = encrypt(idAuth);
+
+  try {  
+    const user = await prisma.user.upsert({  
+      where: {  
+        systemAuth_idAuth: {  
+          systemAuth,  
+          idAuth: encryptedIdAuth,  
+        },  
+      },  
+      create: {  
+        systemAuth,  
+        idAuth: encryptedIdAuth,  
+        customCompositeGates: {  
+          create: gatesData,  
+        },  
+      },  
+      update: {  
+        customCompositeGates: {  
+          create: gatesData,  
+        },  
+      },  
+      include: {  
+        customCompositeGates: true,  
+      },  
+    });  
+
+    return {
+        ...user,
+        idAuth: decrypt(user.idAuth),
+      };
+  } catch (e) {
+    console.error(e);  
+    return { status: false };  
+  }  
+}
+
+type CompositeGateUpdateInput = {
+  id: number;
+  title: string;
+  description: string;
+  gates: Prisma.InputJsonValue;
+  authorId: number;
+};
+  
+export async function updateCompositeGate(systemAuth: string, idAuth: string, updateData: CompositeGateUpdateInput) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
+  try {  
+    const userWithGate = await prisma.user.findUnique({  
+      where: {  
+        systemAuth_idAuth: {  
+          systemAuth,  
+          idAuth: encryptedIdAuth,  
+        },  
+      },  
+      include: {  
+        customCompositeGates: {  
+          where: { id: updateData.id },  
+          take: 1,  
+        },  
+      },  
+    }); 
+  
+    if (!userWithGate || userWithGate.customCompositeGates.length === 0) {  
+      return { status: false };  
+    }  
+  
+    await prisma.customCompositeGate.update({  
+      where: { id: updateData.id },  
+      data: {  
+        title: updateData.title,  
+        description: updateData.description,  
+        gates: updateData.gates,
+        authorId: updateData.authorId,
+        updatedAt: new Date(),  
+      },  
+    });  
+  
+    const updatedUser = await prisma.user.findUnique({  
+      where: {  
+        systemAuth_idAuth: {  
+          systemAuth,  
+          idAuth: encryptedIdAuth,  
+        },  
+      },  
+      include: {  
+        customCompositeGates: true,  
+      },  
+    });  
+  
+    return {
+    ...updatedUser,
+    idAuth: decrypt(updatedUser!.idAuth),
+  };
+  } catch (e) {  
+    console.error(e);  
+    return { status: false };  
+  }  
+}
+  
+export async function deleteCompositeGate(systemAuth: string, idAuth: string, gateId: number) {  
+  const encryptedIdAuth = encrypt(idAuth);
+
+  try {  
+    const user = await prisma.user.findUnique({  
+      where: {  
+        systemAuth_idAuth: {  
+          systemAuth,  
+          idAuth: encryptedIdAuth,  
+        },  
+      },  
+      include: {  
+        customCompositeGates: {  
+          where: { id: gateId },  
+          take: 1,  
+        },  
+      },  
+    });  
+  
+    if (!user || user.customCompositeGates.length === 0) {  
+      return { status: false };  
+    }  
+      
+    await prisma.customCompositeGate.delete({  
+      where: { id: gateId },  
+    });  
+    const updatedUser = await prisma.user.findUnique({  
+      where: {  
+        systemAuth_idAuth: {  
+          systemAuth,  
+          idAuth: encryptedIdAuth,  
+        },  
+      },  
+      include: {  
+        customCompositeGates: true,  
       },  
     });  
   

@@ -20,7 +20,12 @@ export async function createUser(systemAuth: string, idAuth: string) {
         orderBy: {  
           createdAt: 'desc',  
         },
-      },  
+      }, 
+      customCompositeGates: {
+        orderBy: {  
+          createdAt: 'desc',  
+        },
+      },   
     },  
     });
   return {
@@ -49,7 +54,12 @@ export async function getUser(systemAuth: string, idAuth: string) {
         orderBy: {  
           createdAt: 'desc',  
         },  
-      },  
+      }, 
+      customCompositeGates: {
+          orderBy: {  
+          createdAt: 'desc',  
+        },  
+      }
     },  
   });
 

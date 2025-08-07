@@ -32,6 +32,8 @@ export const getUser = async (req: Request, res: Response) => {
   }
 };
 
+// Gates
+
 export async function getGates(req: Request, res: Response) {  
   try {
     const authResult = getAuth(req, res);
@@ -44,7 +46,7 @@ export async function getGates(req: Request, res: Response) {
   } catch (error) {
     res.status(500).json({ error: 'Error getting gates' });
   }
-}
+};
 
 export const postGate = async (req: Request, res: Response) => {
   try {
@@ -104,6 +106,8 @@ export const deleteGate = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error deleting gates' });
   }
 };
+
+// Algorithms
 
 export const getAllAlgorithms = async (req: Request, res: Response) => {
   try {
@@ -175,5 +179,78 @@ export const deleteAlgorithm = async (req: Request, res: Response) => {
   
   } catch (error) {
     res.status(500).json({ error: 'Error deleting algorithm' });
+  }
+};
+
+// CompositeGates
+
+export async function getCompositeGates(req: Request, res: Response) {  
+  try {
+    const authResult = getAuth(req, res);
+    if (!authResult)
+      return;
+
+    const [provider, userId] = authResult;
+    const gates = await gatesServer.getCompositeGates(provider, userId);
+    res.json(gates);
+  } catch (error) {
+    res.status(500).json({ error: 'Error getting composite gates' });
+  }
+};
+
+export const postCompositeGates = async (req: Request, res: Response) => {
+  try {
+    const authResult = getAuth(req, res);
+    if (!authResult)
+      return;
+
+    const [provider, userId] = authResult;
+    const gates = req.body.gates;
+
+    await userServer.getUser(provider, userId);
+
+    const status = await gatesServer.upsertUserWithMultipleCompositeGates(provider, userId, gates);
+    res.json(status);
+  
+  } catch (error) {
+    res.status(500).json({ error: 'Error adding composite gates' });
+  }
+};
+
+export const patchCompositeGates = async (req: Request, res: Response) => {
+  try {
+    const authResult = getAuth(req, res);
+    if (!authResult)
+      return;
+
+    const [provider, userId] = authResult;
+    const gate = req.body;
+
+    await userServer.getUser(provider, userId);
+
+    const status = await gatesServer.updateCompositeGate(provider, userId, gate);
+    res.json(status);
+  
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating composite gates' });
+  }
+};
+
+export const deleteCompositeGates = async (req: Request, res: Response) => {
+  try {
+    const authResult = getAuth(req, res);
+    if (!authResult)
+      return;
+
+    const [provider, userId] = authResult;
+    const gateId = req.body.id;
+
+    await userServer.getUser(provider, userId);
+
+    const status = await gatesServer.deleteCompositeGate(provider, userId, gateId);
+    res.json(status);
+  
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting composite gates' });
   }
 };

@@ -19,6 +19,7 @@ model User {
   idAuth      String
   customGates CustomGate[]
   customAlgorithms CustomAlgorithm[]
+  customCompositeGates CustomCompositeGate[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -26,6 +27,20 @@ model User {
   @@index([systemAuth])
   @@index([idAuth])
 }
+
+model CustomCompositeGate {
+  id               Int      @id @default(autoincrement())
+  title            String
+  description      String
+  gates            Json
+  author           User     @relation(fields: [authorId], references: [id])
+  authorId         Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([authorId])
+}
+
 
 model CustomGate {
   id               Int      @id @default(autoincrement())

@@ -15,4 +15,9 @@ router.post('/algorithm', usersController.postAlgorithm);
 router.patch('/algorithm', usersController.patchAlgorithm);
 router.delete('/algorithm', usersController.deleteAlgorithm);
 
+router.get('/compositeGate', usersController.getCompositeGates);
+router.post('/compositeGate', usersController.postCompositeGates);
+router.patch('/compositeGate', usersController.patchCompositeGates);
+router.delete('/compositeGate', usersController.deleteCompositeGates);
+
 export default router;
