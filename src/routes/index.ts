@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import printersRouter from './user.js';
+import userRouter from './user.js';
+import configurationRouter from './configuration.js';
 
 const router = Router();
 
-router.use('/user', printersRouter);
+router.use('/user', userRouter);
+router.use('/configurations', configurationRouter);
 
 export default router;

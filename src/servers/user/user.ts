@@ -25,7 +25,8 @@ export async function createUser(systemAuth: string, idAuth: string) {
         orderBy: {  
           createdAt: 'desc',  
         },
-      },   
+      }, 
+      userCalculations: {}
     },  
     });
   return {
@@ -59,7 +60,8 @@ export async function getUser(systemAuth: string, idAuth: string) {
           orderBy: {  
           createdAt: 'desc',  
         },  
-      }
+      },
+      userCalculations: {}
     },  
   });
 

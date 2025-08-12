@@ -20,6 +20,7 @@ model User {
   customGates CustomGate[]
   customAlgorithms CustomAlgorithm[]
   customCompositeGates CustomCompositeGate[]
+  userCalculations Calculations[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -73,6 +74,52 @@ model CustomAlgorithm  {
   authorId         Int
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([authorId])
+}
+
+enum ComputerType {
+  virtual_machine
+  physical_machine
+  quantum_computer
+}
+
+model Configurations {
+  id               String  @id
+  type             ComputerType
+  works            Boolean @default(false)
+  calculations     Calculations[]
+}
+
+enum CalculationsType {
+  schema
+  code
+  image
+}
+
+enum CalculationsStatus {
+  queued
+  calculated
+  success
+  error
+}
+
+model Calculations{
+  id               Int      @id @default(autoincrement())
+  type             CalculationsType
+  status           CalculationsStatus
+  src              Json
+  result           Json
+  metrics          Json
+  idConfigurations Configurations @relation(fields: [confId], references: [id])
+  confId           String
+  author           User     @relation(fields: [authorId], references: [id])
+  authorId         Int
+  sentEmail        Boolean? @default(dbgenerated("NULL"))
+  errorText        String?  @default(dbgenerated("NULL"))
+  createdAt        DateTime @default(now())
+  startAt          DateTime
+  finishAt         DateTime
 
   @@index([authorId])
 }
