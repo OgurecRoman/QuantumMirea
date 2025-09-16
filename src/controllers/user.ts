@@ -198,7 +198,7 @@ export const deleteAlgorithm = async (req: Request, res: Response) => {
 
       const status = await algorithmsServer.deleteUserAlgorithm(provider, userId, algorithmId);
       res.json(status);
-    } else res.status(500).json({ error: 'Error adding gates' });
+    } else res.status(500).json({ error: 'Error adding algorithm' });
 
   } catch (error) {
     res.status(500).json({ error: 'Error deleting algorithm' });

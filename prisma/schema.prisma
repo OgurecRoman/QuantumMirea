@@ -21,6 +21,8 @@ model User {
   customAlgorithms CustomAlgorithm[]
   customCompositeGates CustomCompositeGate[]
   userCalculations Calculations[]
+  userImages Images[]
+  userVideos Videos[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -84,11 +86,20 @@ enum ComputerType {
   quantum_computer
 }
 
+enum JobsType {
+  calculations
+  images
+  videos
+}
+
 model Configurations {
   id               String  @id
   type             ComputerType
+  jobs             JobsType
   works            Boolean @default(false)
   calculations     Calculations[]
+  images           Images[]
+  videos           Videos[]
 }
 
 enum CalculationsType {
@@ -110,6 +121,46 @@ model Calculations{
   status           CalculationsStatus
   src              Json
   result           Json
+  metrics          Json
+  idConfigurations Configurations @relation(fields: [confId], references: [id])
+  confId           String
+  author           User     @relation(fields: [authorId], references: [id])
+  authorId         Int
+  sentEmail        Boolean? @default(dbgenerated("NULL"))
+  errorText        String?  @default(dbgenerated("NULL"))
+  createdAt        DateTime @default(now())
+  startAt          DateTime
+  finishAt         DateTime
+
+  @@index([authorId])
+}
+
+model Images{
+  id               Int      @id @default(autoincrement())
+  type             CalculationsType
+  status           CalculationsStatus
+  src              String? @default(dbgenerated("NULL"))
+  result           String? @default(dbgenerated("NULL"))
+  metrics          Json
+  idConfigurations Configurations @relation(fields: [confId], references: [id])
+  confId           String
+  author           User     @relation(fields: [authorId], references: [id])
+  authorId         Int
+  sentEmail        Boolean? @default(dbgenerated("NULL"))
+  errorText        String?  @default(dbgenerated("NULL"))
+  createdAt        DateTime @default(now())
+  startAt          DateTime
+  finishAt         DateTime
+
+  @@index([authorId])
+}
+
+model Videos{
+  id               Int      @id @default(autoincrement())
+  type             CalculationsType
+  status           CalculationsStatus
+  src              String? @default(dbgenerated("NULL"))
+  result           String? @default(dbgenerated("NULL"))
   metrics          Json
   idConfigurations Configurations @relation(fields: [confId], references: [id])
   confId           String
