@@ -12,6 +12,15 @@ export async function getConfiguration() {
   return configurations;
 }
 
+export async function turnOffConfiguration(id: string) {
+  await prisma.configurations.update({
+      where: { id: id },
+      data: {
+        works: false,
+      },
+  });
+}
+
 export async function upsertConfiguration(id: string, job: JobsType, computer: ComputerType) {
   try {
     await prisma.configurations.update({

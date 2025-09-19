@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import * as configurationSchema from "../schemas/configuration.schema.js";
 import * as configurationServer from '../servers/configurations/configuration.js';
 import { rabbitMQ } from '../lib/rabbitmq.js';
-import { success } from 'zod';
 
 export async function getConfiguration(req: Request, res: Response) {  
   try {

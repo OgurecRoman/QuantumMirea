@@ -1,4 +1,5 @@
 const amqp = require('amqplib');
+import * as configurationServer from '../servers/configurations/configuration.js'
 
 class RabbitMQService {
   private client: any;
@@ -34,14 +35,6 @@ class RabbitMQService {
     return this.channel;
   }
 
-  async sendToQueue(queueName: string, message: any) {
-    const channel = await this.getChannel();
-    await channel.assertQueue(queueName, { durable: true });
-    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), {
-      persistent: true
-    });
-  }
-
   async assertQueue(queueName: string){
     const channel = await this.getChannel();
     await channel.assertQueue(queueName, {
@@ -49,6 +42,27 @@ class RabbitMQService {
     });
 
     console.log(`Add queue ${queueName}`);
+  }
+
+  async check_connection() {
+    const channel = await this.getChannel();
+    
+    const configurations = await configurationServer.getConfiguration()
+    for (const conf of configurations){
+        const queueInfo = await this.channel.checkQueue(`${conf.id}-queue`);
+        if (queueInfo.consumerCount == 0){
+            console.log(`соединение с ${conf.id}-queue было потеряно, конфигурация отключена`)
+            configurationServer.turnOffConfiguration(conf.id);
+        } 
+    }
+  }
+
+  async sendToQueue(queueName: string, message: any) {
+    const channel = await this.getChannel();
+    await channel.assertQueue(queueName, { durable: true });
+    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)), {
+      persistent: true
+    });
   }
 }
 
