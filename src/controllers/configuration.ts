@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import * as configurationSchema from "../schemas/configuration.schema.js";
 import * as configurationServer from '../servers/configurations/configuration.js';
-import { connectRabbit } from '../lib/rabbitmq.js'
+import { rabbitMQ } from '../lib/rabbitmq.js';
+import { success } from 'zod';
 
 export async function getConfiguration(req: Request, res: Response) {  
   try {
     const configurations = await configurationServer.getConfiguration();
-    res.json(configurations);
+    res.status(200).json(configurations);
   } catch (error) {
     res.status(500).json({ error: 'Error getting configurations' });
   }
@@ -16,37 +17,42 @@ export async function postConfiguration(req: Request, res: Response) {
   try {
       const id = req.body.id;
       const job = req.body.job;
+      const type = req.body.type;
 
-      const result = configurationSchema.ConfigurationSchema.safeParse({ id, job });
+      const result = configurationSchema.ConfigurationSchema.safeParse({ id, job, type });
 
       if (result.success){
-        await sendToQueue(req, res, id, job);
+        const configuration_exist = await configurationServer.upsertConfiguration(id, job, type);
 
-        const status = await configurationServer.upsertConfiguration(id, job);
-      }
+        const queueName = `${id}-queue`;
+
+        if (!configuration_exist) {
+          await sendToQueue(res, queueName);
+        }
+        else res.status(200).json(
+          { success: true, 
+            message: `Queue ${queueName} already exists`,
+            queueName: queueName }
+        );
+        
+      } else res.status(500).json({ error: 'Error adding configurations' });
   
     } catch (error) {
       console.error("Error:", error);
     }
 };
 
-export async function sendToQueue(req: Request, res: Response, id: string, job: string) {
+export async function sendToQueue(res: Response, queueName: string) {
   try{
-    const client = await connectRabbit();
-    const channel = await client.createChannel();
+    await rabbitMQ.assertQueue(queueName)
 
-    const queueName = `${id}-queue`;
-
-    await channel.assertQueue(queueName, {
-      durable: true
-    });
-
-    res.json({
-            success: true,
-            message: `Computer registered on ${queueName}`,
-            queueName: queueName
-        });
+    res.status(200).json({
+                success: true,
+                message: `Queue ${queueName} registred`,
+                queueName: queueName
+            });
   } catch (error) {
-        console.error("Error:", error);
+      res.status(500).json({ error: 'Error posting configuration to queue' });
+      console.error("Error:", error);
   } 
 }

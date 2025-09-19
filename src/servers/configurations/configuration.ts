@@ -12,33 +12,27 @@ export async function getConfiguration() {
   return configurations;
 }
 
-export async function upsertConfiguration(id: string, job: JobsType) {
-  let type = null;
-  if (id[0] == '0') type = ComputerType.physical_machine;
-  else if (id[0] == '1') type = ComputerType.virtual_machine;
-  else type = ComputerType.quantum_computer;
-
+export async function upsertConfiguration(id: string, job: JobsType, computer: ComputerType) {
   try {
-    const configuration = await prisma.configurations.update({
+    await prisma.configurations.update({
       where: { id: id },
       data: {
         works: true,
       },
     });
-
-    return configuration;
+    return true;
     
   } catch (error) {
-    const configurations = await prisma.configurations.create({
+    await prisma.configurations.create({
       data: {
           id: id,
-          type: type,
+          type: computer,
           jobs: job,
           works: true,
         }
       },
     );
-    return configurations;
+    return false;
   }
 }
 
