@@ -15,13 +15,14 @@ export async function getConfiguration(req: Request, res: Response) {
 export async function postConfiguration(req: Request, res: Response) {  
   try {
       const id = req.body.id;
+      const name = req.body.name;
       const job = req.body.job;
       const type = req.body.type;
 
-      const result = configurationSchema.ConfigurationSchema.safeParse({ id, job, type });
+      const result = configurationSchema.ConfigurationSchema.safeParse({ id, name, job, type });
 
       if (result.success){
-        const configuration_exist = await configurationServer.upsertConfiguration(id, job, type);
+        const configuration_exist = await configurationServer.upsertConfiguration(id, name, job, type);
 
         const queueName = `${id}-queue`;
 
@@ -34,9 +35,10 @@ export async function postConfiguration(req: Request, res: Response) {
             queueName: queueName }
         );
         
-      } else res.status(500).json({ error: 'Error adding configurations' });
+      } else res.status(500).json({ error: 'Error adding configuration' });
   
     } catch (error) {
+      res.status(500).json({ error: 'Error post configuration' });
       console.error("Error:", error);
     }
 };

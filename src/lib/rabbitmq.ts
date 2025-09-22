@@ -49,11 +49,11 @@ class RabbitMQService {
     
     const configurations = await configurationServer.getConfiguration()
     for (const conf of configurations){
-        const queueInfo = await this.channel.checkQueue(`${conf.id}-queue`);
+        const queueInfo = await channel.checkQueue(`${conf.id}-queue`);
         if (queueInfo.consumerCount == 0){
-            console.log(`соединение с ${conf.id}-queue было потеряно, конфигурация отключена`)
+            console.log(`соединение с ${conf.id}-queue было потеряно, конфигурация отключена`);
             configurationServer.turnOffConfiguration(conf.id);
-        } 
+        } else { console.log(`к очереди ${conf.id}-queue подключено ${queueInfo.consumerCount} воркеров`) }
     }
   }
 

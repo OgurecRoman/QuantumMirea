@@ -94,6 +94,7 @@ enum JobsType {
 
 model Configurations {
   id               String  @id
+  name             String @default("")
   type             ComputerType
   jobs             JobsType
   works            Boolean @default(false)

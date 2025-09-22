@@ -12,6 +12,17 @@ export async function getConfiguration() {
   return configurations;
 }
 
+export async function getConfigurationByName(name: string) {
+  const configuration = await prisma.configurations.findFirst({
+    where: {
+      name: name
+      }, 
+    },
+  );
+
+  return configuration;
+}
+
 export async function turnOffConfiguration(id: string) {
   await prisma.configurations.update({
       where: { id: id },
@@ -21,7 +32,7 @@ export async function turnOffConfiguration(id: string) {
   });
 }
 
-export async function upsertConfiguration(id: string, job: JobsType, computer: ComputerType) {
+export async function upsertConfiguration(id: string, name: string, job: JobsType, computer: ComputerType) {
   try {
     await prisma.configurations.update({
       where: { id: id },
@@ -35,6 +46,7 @@ export async function upsertConfiguration(id: string, job: JobsType, computer: C
     await prisma.configurations.create({
       data: {
           id: id,
+          name: name,
           type: computer,
           jobs: job,
           works: true,
