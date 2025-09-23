@@ -1,24 +1,11 @@
 import { Request, Response } from 'express';
 import { z } from "zod";
+import { getAuth } from './auth.js'
 import * as gatesSchema from "../schemas/gates.schema.js";
 import * as algorithmSchema from "../schemas/algorithm.schema.js";
 import * as userServer from '../servers/user/user.js';
 import * as gatesServer from '../servers/user/gates.js';
 import * as algorithmsServer from '../servers/user/algorithms.js';
-
-function getAuth(req: Request, res: Response): [string, string] | null{
-  const provider = req.headers['provider'];
-  const userId = req.headers['id'];
-
-  if (!provider || !userId || typeof provider != 'string' || typeof userId != 'string') {
-    res.status(400).json({ 
-        message: 'provider, id are wrong',
-        received: req.body
-    });
-    return null;
-  }
-  return [provider, userId]
-}
 
 export const getUser = async (req: Request, res: Response) => {
   try {

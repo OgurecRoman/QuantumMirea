@@ -1,6 +1,6 @@
 import prisma from '../../lib/prisma';
 import { Prisma } from '@prisma/client';
-import { getUser } from '../user/user.js'
+import { getUser } from './user.js'
 import { encrypt, decrypt } from '../../lib/cryptoUtils';
   
 export async function getUserGates(systemAuth: string, idAuth: string) {  

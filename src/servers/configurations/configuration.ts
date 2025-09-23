@@ -15,7 +15,8 @@ export async function getConfiguration() {
 export async function getConfigurationByName(name: string) {
   const configuration = await prisma.configurations.findFirst({
     where: {
-      name: name
+      name: name,
+      works: true
       }, 
     },
   );

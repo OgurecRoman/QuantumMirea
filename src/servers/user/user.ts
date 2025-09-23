@@ -1,5 +1,5 @@
 import prisma from '../../lib/prisma.js';
-import { encrypt, decrypt } from '../../lib/cryptoUtils';
+import { encrypt, decrypt } from '../../lib/cryptoUtils.js';
 
 
 export async function createUser(systemAuth: string, idAuth: string) {

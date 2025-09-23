@@ -1,6 +1,6 @@
 import prisma from '../../lib/prisma.js';
-import { getUser } from '../user/user.js';
-import { encrypt, decrypt } from '../../lib/cryptoUtils';
+import { getUser } from './user.js';
+import { encrypt, decrypt } from '../../lib/cryptoUtils.js';
   
 export async function getUserAlgorithms(systemAuth: string, idAuth: string) {  
   const user = await getUser(systemAuth, idAuth);
